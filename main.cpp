@@ -67,9 +67,9 @@ static bool lintStyleSheet(const QString &css, bool isFile, bool syntaxOnly)
         return true;
     } else {
         if (isFile)
-            qWarning() << QStringLiteral("Invalid stylesheet for %1").arg(css);
+            qWarning().noquote() << QStringLiteral("Invalid stylesheet for %1").arg(css);
         else
-            qWarning() << "Invalid stylesheet";
+            qWarning().noquote() << "Invalid stylesheet";
        return false;
     }
 }
