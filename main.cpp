@@ -34,6 +34,16 @@ SOFTWARE.
 static QtMessageHandler s_originalMessageHandler;
 static bool s_warningsDetected = false;
 
+static const char *const s_recommendationText =
+R"(
+
+NOTE: Avoid using Qt style sheets. Qt style sheets are pratically unmaintained and are being considered for deprecation or removal in Qt 6.
+Often they aren't flexible enough to implement complex styles and you only realize that when it's too late to rewrite with QStyle.
+Mixing style sheets with proxy styles would solve the above but it's currently not well supported (see https://codereview.qt-project.org/#/c/218791/ for proposed solution).
+See also QTBUG-68671 for less drastic Qt 6 plans.
+)";
+
+
 void noWarningsMessageHandler(QtMsgType t, const QMessageLogContext &context, const QString &msg)
 {
     // This is used in silent mode.
@@ -70,28 +80,16 @@ int main(int argv, char** argc)
     QCoreApplication::setApplicationName("qsslint");
     QCoreApplication::setApplicationVersion("1.0");
     QCommandLineParser parser;
-    parser.setApplicationDescription(QLatin1String("Qt stylesheet syntax verifier"));
+    parser.setApplicationDescription(QStringLiteral("\nQt stylesheet syntax verifier %1").arg(s_recommendationText));
     parser.addHelpOption();
     parser.addVersionOption();
-    QCommandLineOption syntaxOnlyOption(QStringList() << "s" << "syntax-only", QLatin1String("Only validate syntax, no semantics"));
+    QCommandLineOption syntaxOnlyOption(QStringList() << "s" << "syntax-only", QLatin1String("Only validate syntax, not semantics"));
     parser.addOption(syntaxOnlyOption);
 
-    QCommandLineOption pedanticOption(QStringList() << "p" << "pedantic", QLatin1String("Don't allow css outside of the recommended QSS subset"));
-    parser.addOption(pedanticOption);
-
     parser.addPositionalArgument(QLatin1String("files"), QLatin1String("list of qss files to verify"));
-
     parser.process(app);
 
     const auto files = parser.positionalArguments();
-
-    if (parser.isSet(pedanticOption)) {
-        qWarning() << "\nThe only recommended qss subset is the empty set.\n"
-"Qt StyleSheets are not recommended and fall very short of QStyle.\n"
-"They're also being considered for deprecation or removal in Qt 6.\n"
-"Please avoid using stylesheets in any new project.\n";
-        return 1;
-    }
 
     if (files.isEmpty()) {
         parser.showHelp(-1);
